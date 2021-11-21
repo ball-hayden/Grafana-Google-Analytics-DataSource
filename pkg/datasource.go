@@ -26,10 +26,8 @@ func NewDataSource(mux *http.ServeMux) *GoogleAnalyticsDataSource {
 		},
 	}
 
-	mux.HandleFunc("/accounts", ds.handleResourceAccounts)
-	mux.HandleFunc("/web-properties", ds.handleResourceWebProperties)
-	mux.HandleFunc("/profiles", ds.handleResourceProfiles)
-	mux.HandleFunc("/profile/timezone", ds.handleResourceProfileTimezone)
+	mux.HandleFunc("/properties", ds.handleResourceProperties)
+	mux.HandleFunc("/property/timezone", ds.handleResourceProfileTimezone)
 	mux.HandleFunc("/dimensions", ds.handleResourceDimensions)
 	mux.HandleFunc("/metrics", ds.handleResourceMetrics)
 	return ds
@@ -59,16 +57,16 @@ func (ds *GoogleAnalyticsDataSource) CheckHealth(ctx context.Context, req *backe
 		}, nil
 	}
 
-	profiles, err := client.getAllProfilesList()
+	properties, err := client.getPropertiesList()
 	if err != nil {
-		log.DefaultLogger.Error("Fail getAllProfilesList", err.Error())
+		log.DefaultLogger.Error("Fail getAllPropertiesList", err.Error())
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
 			Message: "Invalid config",
 		}, nil
 	}
 
-	testData := QueryModel{profiles[0].AccountId, profiles[0].WebPropertyId, profiles[0].Id, "yesterday", "today", "a", []string{"ga:sessions"}, "ga:dateHour", []string{}, 1, "", false, "UTC",""}
+	testData := QueryModel{properties[0].Name, "yesterday", "today", "a", []string{"ga:sessions"}, "ga:dateHour", []string{}, "UTC", ""}
 	res, err := client.getReport(testData)
 
 	if err != nil {
@@ -83,8 +81,6 @@ func (ds *GoogleAnalyticsDataSource) CheckHealth(ctx context.Context, req *backe
 		log.DefaultLogger.Info("HTTPStatusCode", "status", res.HTTPStatusCode)
 		log.DefaultLogger.Info("res", res)
 	}
-
-	printResponse(res)
 
 	return &backend.CheckHealthResult{
 		Status:  status,
@@ -140,7 +136,7 @@ func writeResult(rw http.ResponseWriter, path string, val interface{}, err error
 	rw.WriteHeader(code)
 }
 
-func (ds *GoogleAnalyticsDataSource) handleResourceAccounts(rw http.ResponseWriter, req *http.Request) {
+func (ds *GoogleAnalyticsDataSource) handleResourceProperties(rw http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodGet {
 		return
 	}
@@ -152,40 +148,8 @@ func (ds *GoogleAnalyticsDataSource) handleResourceAccounts(rw http.ResponseWrit
 		return
 	}
 
-	res, err := ds.analytics.GetAccounts(ctx, config)
-	writeResult(rw, "accounts", res, err)
-}
-
-func (ds *GoogleAnalyticsDataSource) handleResourceWebProperties(rw http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodGet {
-		return
-	}
-
-	ctx := req.Context()
-	config, err := LoadSettings(httpadapter.PluginConfigFromContext(ctx))
-	if err != nil {
-		writeResult(rw, "?", nil, err)
-		return
-	}
-
-	res, err := ds.analytics.GetWebProperties(ctx, config, req.URL.Query().Get("accountId"))
-	writeResult(rw, "webProperties", res, err)
-}
-
-func (ds *GoogleAnalyticsDataSource) handleResourceProfiles(rw http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodGet {
-		return
-	}
-
-	ctx := req.Context()
-	config, err := LoadSettings(httpadapter.PluginConfigFromContext(ctx))
-	if err != nil {
-		writeResult(rw, "?", nil, err)
-		return
-	}
-
-	res, err := ds.analytics.GetProfiles(ctx, config, req.URL.Query().Get("accountId"), req.URL.Query().Get("webPropertyId"))
-	writeResult(rw, "profiles", res, err)
+	res, err := ds.analytics.GetProperties(ctx, config)
+	writeResult(rw, "properties", res, err)
 }
 
 func (ds *GoogleAnalyticsDataSource) handleResourceDimensions(rw http.ResponseWriter, req *http.Request) {
@@ -218,6 +182,6 @@ func (ds *GoogleAnalyticsDataSource) handleResourceProfileTimezone(rw http.Respo
 		return
 	}
 
-	res, err := ds.analytics.GetProfileTimezone(ctx, config, req.URL.Query().Get("accountId"), req.URL.Query().Get("webPropertyId"), req.URL.Query().Get("profileId"))
+	res, err := ds.analytics.GetProfileTimezone(ctx, config, req.URL.Query().Get("propertyName"))
 	writeResult(rw, "timezone", res, err)
 }

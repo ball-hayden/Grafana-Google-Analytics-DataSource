@@ -4,7 +4,7 @@
 Visualize data from GA(Google Analytics)
 
 ## Feature
-- AutoComplete AccountID & WebpropertyID & ProfileID
+- AutoComplete PropertyID
 - AutoComplete Metrics & Dimensions
 - Query using Metrics & Dimensions
 - Setting with json
@@ -22,7 +22,7 @@ Visualize data from GA(Google Analytics)
 6.  On the `Service account permissions` page, don't add a role to the service account. Just click `Continue`
 7.  In the next step, click `Create Key`. Choose key type `JSON` and click `Create`. A JSON key file will be created and downloaded to your computer
 8.  Note your `service account email` ex) *@*.iam.gserviceaccount.com
-9.  Open the [Google Analytics API](https://console.cloud.google.com/apis/library/analytics.googleapis.com)  in API Library and enable access for your account
+9.  Open the [Google Analytics Admin API](https://console.cloud.google.com/apis/library/analyticsadmin.googleapis.com)  in API Library and enable access for your account
 10. Open the [Google Analytics Reporting API](https://console.cloud.google.com/marketplace/product/google/analyticsreporting.googleapis.com?q=search&referrer=search&project=composed-apogee-307906)  in API Library and enable access for your GA Data
 
 ### Google Analytics Setting
@@ -34,7 +34,7 @@ Visualize data from GA(Google Analytics)
 5. Enter `service account email` at **Generate a JWT file** 8th step and Permissions add `Read & Analyze`
 
 ### Grafana
-Go To Add Data source then Drag the file to the dotted zone above. Then click `Save & Test`.   
+Go To Add Data source then Drag the file to the dotted zone above. Then click `Save & Test`.
 The file contents will be encrypted and saved in the Grafana database.
 
 ## How To Run
